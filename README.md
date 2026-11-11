@@ -1,12 +1,33 @@
 # Coffee AI
 
-A starter AI assistant for a coffee business, built on Claude.
+AI agents for a coffee business, built on Claude.
+
+## Coffee HQ: multi-agent platform
+
+![Coffee HQ dashboard](docs/hq-dashboard.png)
+
+A **General Manager** agent runs a team of agents. It delegates and monitors bugs. **Social Media** proposes ways to
+attract buyers, and **Innovation Lab** scouts new coffee tech. The agents talk to each other over a
+message bus, and the dashboard draws every message live.
+
+```bash
+python hq.py serve                 # dashboard at http://127.0.0.1:8765
+python hq.py demo                  # sample mission, no API key needed
+python hq.py mission "Plan next month: more students, and any new tech worth buying?"
+python hq.py health                # health and bug summary
+python -m unittest                 # offline tests
+```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how agents communicate, bug monitoring,
+and suggested agents to add next.
+
+## Chat assistants
 
 It has two modes:
 
 - **Customer mode**: an AI barista that answers menu and opening-hours questions,
   recommends drinks, and takes pickup orders (saved to `data/orders.json`).
-- **Owner mode**: a business helper that writes social posts, promotions and
+- **Owner mode** (the Business Analyst agent): a business helper that writes social posts, promotions and
   newsletters, suggests menu and pricing ideas, and summarizes sales.
 
 ## Setup
@@ -35,8 +56,8 @@ never makes up prices or hours.
   `place_order`, `get_order_status`, `sales_summary`). Add a function with the
   `@beta_tool` decorator and put it in `CUSTOMER_TOOLS` or `OWNER_TOOLS` to give
   the AI a new ability.
-- `coffee_ai/agent.py`: the agent loop and the instructions for each mode.
-- `main.py`: a terminal chat.
+- `coffee_ai/hq/`: the agent platform (`base.py` loop, `agents.py`, `bus.py`, `monitor.py`, dashboard).
+- `main.py`: a terminal chat with the Barista or the Analyst.
 
 ## Ideas for next steps
 

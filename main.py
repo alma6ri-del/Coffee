@@ -1,20 +1,23 @@
 """Chat with your coffee shop AI from the terminal.
 
-    python main.py            # customer assistant (menu, hours, orders)
-    python main.py --owner    # owner assistant (marketing, sales, ideas)
+    python main.py            # AI Barista for customers (menu, hours, orders)
+    python main.py --owner    # Business Analyst for you (marketing, sales, ideas)
+
+Both are agents of Coffee HQ, so their errors show up in the bug monitor.
+For the full multi-agent platform, run `python hq.py serve`.
 """
 
 import sys
 
 import anthropic
 
-from coffee_ai.agent import CoffeeAgent
+from coffee_ai.hq import HQ
 
 
 def main() -> None:
     mode = "owner" if "--owner" in sys.argv else "customer"
-    agent = CoffeeAgent(mode=mode)
-    print(f"Coffee AI ({mode} mode). Type 'quit' to exit.\n")
+    agent = HQ().agents["analyst" if mode == "owner" else "barista"]
+    print(f"{agent.title} ({mode} mode). Type 'quit' to exit.\n")
     while True:
         try:
             text = input("You: ").strip()
@@ -25,7 +28,7 @@ def main() -> None:
         if not text:
             continue
         try:
-            print(f"\nAI: {agent.ask(text)}\n")
+            print(f"\nAI: {agent.chat(text)}\n")
         except anthropic.AuthenticationError:
             print("Missing or invalid API key. Set ANTHROPIC_API_KEY first.")
             break

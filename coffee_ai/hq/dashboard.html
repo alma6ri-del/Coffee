@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coffee HQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07080c;
+    --panel: rgba(18, 20, 28, 0.82);
+    --line: rgba(255, 255, 255, 0.08);
+    --text: #e8e3d9;
+    --muted: #8a8f98;
+    --amber: #ffb44c;
+    --cyan: #38e0ff;
+    --pink: #ff5fa2;
+    --green: #7dff9a;
+    --violet: #c9a2ff;
+    --red: #ff4d5e;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body { margin: 0; min-height: 100vh; background-attachment: fixed !important; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 30% -10%, rgba(255, 180, 76, 0.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 100%, rgba(56, 224, 255, 0.08), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    padding: 16px 24px; border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+    background: conic-gradient(from 200deg, var(--amber), var(--pink), var(--cyan), var(--amber));
+    box-shadow: 0 0 24px rgba(255, 180, 76, 0.4);
+  }
+  .logo span { width: 30px; height: 30px; border-radius: 8px; background: var(--bg); display: grid; place-items: center; font-weight: 700; }
+  h1 { margin: 0; font-size: 18px; letter-spacing: 0.18em; }
+  .sub { color: var(--muted); font-size: 12px; letter-spacing: 0.08em; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--panel); white-space: nowrap;
+  }
+  .chip b { color: var(--amber); font-weight: 500; }
+  .chip.alert b { color: var(--red); }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; box-shadow: 0 0 8px var(--green); }
+  .dot.busy { background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  main {
+    display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 16px; padding: 16px 24px 24px;
+  }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; backdrop-filter: blur(8px); }
+  .panel h2 {
+    margin: 0; padding: 12px 16px; font-size: 11px; letter-spacing: 0.2em; color: var(--muted);
+    border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;
+  }
+  #net-wrap { position: relative; }
+  svg { width: 100%; height: auto; display: block; }
+  .node-label { font-size: 15px; font-weight: 500; fill: var(--text); text-anchor: middle; }
+  .node-status { font-family: var(--mono); font-size: 11px; fill: var(--muted); text-anchor: middle; letter-spacing: 0.1em; }
+  .node { cursor: pointer; }
+  .node.proposed .node-label { fill: var(--muted); }
+  .node .halo { opacity: 0; transition: opacity 0.3s; }
+  .node.working .halo { opacity: 1; animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.18); opacity: 0.3; } }
+  .node .halo { transform-box: fill-box; transform-origin: center; }
+  .link { stroke: rgba(255, 255, 255, 0.13); stroke-width: 1.5; fill: none; transition: stroke 0.4s; }
+  .link.proposed { stroke-dasharray: 4 6; stroke: rgba(255, 255, 255, 0.07); }
+  .link.hot { stroke: rgba(255, 255, 255, 0.55); }
+  .tooltip {
+    position: absolute; pointer-events: none; max-width: 260px; padding: 10px 12px; border-radius: 10px;
+    background: #12141c; border: 1px solid var(--line); font-size: 13px; line-height: 1.4; opacity: 0; transition: opacity 0.15s;
+  }
+  .tooltip b { display: block; margin-bottom: 4px; }
+  .tooltip i { color: var(--muted); font-style: normal; font-family: var(--mono); font-size: 11px; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--c); box-shadow: 0 0 6px var(--c); }
+
+  .composer { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .composer textarea {
+    flex: 1 1 300px; min-height: 46px; resize: vertical; background: rgba(255, 255, 255, 0.03); color: var(--text);
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px; font: inherit; font-size: 14px;
+  }
+  .composer textarea:focus { outline: none; border-color: var(--amber); }
+  button {
+    font: inherit; font-size: 13px; letter-spacing: 0.08em; border-radius: 10px; padding: 0 18px; min-height: 46px; cursor: pointer;
+    border: 1px solid var(--amber); background: rgba(255, 180, 76, 0.12); color: var(--amber);
+  }
+  button:hover { background: rgba(255, 180, 76, 0.22); }
+  button.ghost { border-color: var(--line); background: transparent; color: var(--text); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .msg { padding: 0 16px 12px; font-size: 13px; color: var(--muted); min-height: 0; }
+
+  aside { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  #feed { max-height: 560px; overflow-y: auto; }
+  .ev { padding: 10px 16px; border-bottom: 1px solid var(--line); cursor: pointer; animation: slidein 0.35s ease-out; }
+  @keyframes slidein { from { opacity: 0; transform: translateY(-6px); } }
+  .ev-head { display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .kind { padding: 2px 6px; border-radius: 4px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bg); background: var(--c); }
+  .route { color: var(--text); }
+  .ev-text { margin-top: 6px; font-size: 13px; line-height: 1.45; color: #cfcac0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: pre-wrap; word-break: break-word; }
+  .ev.open .ev-text { -webkit-line-clamp: unset; display: block; }
+  .filter { font-family: var(--mono); font-size: 11px; color: var(--amber); cursor: pointer; }
+  #bugs { max-height: 220px; overflow-y: auto; }
+  .bug { padding: 8px 16px; border-bottom: 1px solid var(--line); font-size: 12px; }
+  .bug .sev { font-family: var(--mono); font-size: 10px; text-transform: uppercase; color: var(--red); margin-right: 6px; }
+  .empty { padding: 16px; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 1000px) {
+    main { grid-template-columns: 1fr; padding: 16px; }
+    header { padding: 14px 16px; }
+    #feed { max-height: 420px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo"><span>☕</span></div>
+    <div>
+      <h1>COFFEE HQ</h1>
+      <div class="sub">AUTONOMOUS AGENT NETWORK</div>
+    </div>
+  </div>
+  <div class="chips">
+    <div class="chip"><span id="state-dot" class="dot"></span><span id="state">IDLE</span></div>
+    <div class="chip">MESSAGES <b id="count">0</b></div>
+    <div class="chip" id="bug-chip">BUGS <b id="bug-count">0</b></div>
+    <div class="chip" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <h2><span>AGENT NETWORK · LIVE LINKS</span><span>hover a node · click to filter</span></h2>
+    <div id="net-wrap">
+      <svg id="net" viewBox="0 0 1030 620" role="img" aria-label="Network of agents and the messages between them">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M40 0H0V40" fill="none" stroke="rgba(255,255,255,0.035)" />
+          </pattern>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="b" />
+            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+        <rect width="1030" height="620" fill="url(#grid)" />
+        <g id="links"></g>
+        <g id="particles"></g>
+        <g id="nodes"></g>
+      </svg>
+      <div class="tooltip" id="tip"></div>
+    </div>
+    <div class="legend">
+      <span style="--c: var(--amber)">mission / report</span>
+      <span style="--c: var(--cyan)">task</span>
+      <span style="--c: var(--green)">result</span>
+      <span style="--c: var(--violet)">consult / reply</span>
+      <span style="--c: #ffe08a">tool use</span>
+      <span style="--c: var(--red)">bug</span>
+      <span style="--c: var(--muted)">proposed agent</span>
+    </div>
+    <div class="composer">
+      <textarea id="mission" placeholder="Give the General Manager a mission… e.g. “Plan next month: how do we bring more students in, and what new coffee tech is worth trying?”"></textarea>
+      <button id="launch">LAUNCH MISSION</button>
+      <button id="demo" class="ghost">RUN DEMO</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </section>
+
+  <aside>
+    <section class="panel">
+      <h2><span>COMMS FEED</span><span class="filter" id="filter"></span></h2>
+      <div id="feed"><div class="empty">No messages yet. Launch a mission or run the demo.</div></div>
+    </section>
+    <section class="panel">
+      <h2><span>BUG MONITOR · GENERAL MANAGER</span></h2>
+      <div id="bugs"><div class="empty">No bugs logged.</div></div>
+    </section>
+  </aside>
+</main>
+
+<script>
+const KIND_COLOR = {
+  mission: "var(--amber)", report: "var(--amber)", task: "var(--cyan)", result: "var(--green)",
+  consult: "var(--violet)", reply: "var(--violet)", tool: "#ffe08a", bug: "var(--red)",
+};
+const KIND_HEX = {
+  mission: "#ffb44c", report: "#ffb44c", task: "#38e0ff", result: "#7dff9a",
+  consult: "#c9a2ff", reply: "#c9a2ff", tool: "#ffe08a", bug: "#ff4d5e",
+};
+const SVGNS = "http://www.w3.org/2000/svg";
+let nodes = {}, lastId = 0, total = 0, filterAgent = null, feedEvents = [], queue = [];
+
+// Play queued messages one by one so each is visible travelling along its link.
+setInterval(() => {
+  if (!queue.length) return;
+  const e = queue.shift();
+  handle(e, true);
+  if (e.kind !== "status") renderFeed();
+  document.getElementById("count").textContent = total;
+}, 280);
+
+const el = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const linkKey = (a, b) => [a, b].sort().join("|");
+
+async function loadTopology() {
+  const topo = await (await fetch("/api/topology")).json();
+  const links = document.getElementById("links"), group = document.getElementById("nodes");
+  topo.nodes.forEach(n => nodes[n.id] = n);
+  topo.channels.forEach(([a, b]) => {
+    const A = nodes[a], B = nodes[b];
+    const proposed = A.status === "proposed" || B.status === "proposed";
+    el("line", { x1: A.x, y1: A.y, x2: B.x, y2: B.y, class: "link" + (proposed ? " proposed" : ""), "data-key": linkKey(a, b) }, links);
+  });
+  topo.nodes.forEach(n => {
+    const g = el("g", { class: "node " + n.status, "data-id": n.id, transform: `translate(${n.x},${n.y})` }, group);
+    const r = n.id === "gm" ? 38 : 30;
+    const dim = n.status === "proposed";
+    el("circle", { class: "halo", r: r + 10, fill: "none", stroke: n.color, "stroke-width": 2, filter: "url(#glow)" }, g);
+    el("circle", { r, fill: "#0d0f15", stroke: n.color, "stroke-width": dim ? 1.2 : 2.2,
+                   "stroke-dasharray": dim ? "3 4" : "none", filter: dim ? "" : "url(#glow)" }, g);
+    el("circle", { r: r - 9, fill: n.color, opacity: dim ? 0.08 : 0.16 }, g);
+    const initials = el("text", { "text-anchor": "middle", dy: 6, "font-size": n.id === "gm" ? 18 : 15,
+                                  "font-family": "JetBrains Mono", fill: n.color, opacity: dim ? 0.6 : 1 }, g);
+    initials.textContent = n.id === "owner" ? "YOU" : n.title.split(/[\s&()]+/).filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+    const label = el("text", { class: "node-label", y: r + 24 }, g);
+    label.textContent = n.title;
+    const status = el("text", { class: "node-status", y: r + 40, id: "st-" + n.id }, g);
+    status.textContent = n.status === "proposed" ? "PROPOSED" : n.status === "human" ? "HUMAN" : "IDLE";
+    g.addEventListener("mousemove", ev => showTip(ev, n));
+    g.addEventListener("mouseleave", () => tip.style.opacity = 0);
+    g.addEventListener("click", () => setFilter(filterAgent === n.id ? null : n.id));
+  });
+}
+
+const tip = document.getElementById("tip");
+function showTip(ev, n) {
+  const box = document.getElementById("net-wrap").getBoundingClientRect();
+  tip.innerHTML = `<b>${n.title}</b>${n.role || ""}<br><i>${n.status.toUpperCase()}</i>`;
+  let x = ev.clientX - box.left + 14, y = ev.clientY - box.top + 14;
+  x = Math.min(x, box.width - 270);
+  tip.style.left = x + "px"; tip.style.top = y + "px"; tip.style.opacity = 1;
+}
+
+function setStatus(agent, state) {
+  const g = document.querySelector(`.node[data-id="${agent}"]`);
+  if (!g || !nodes[agent] || nodes[agent].status !== "live") return;
+  g.classList.toggle("working", state === "working");
+  document.getElementById("st-" + agent).textContent = state.toUpperCase();
+}
+
+function flashLink(a, b) {
+  const line = document.querySelector(`.link[data-key="${linkKey(a, b)}"]`);
+  if (!line) return;
+  line.classList.add("hot");
+  clearTimeout(line._t);
+  line._t = setTimeout(() => line.classList.remove("hot"), 1400);
+}
+
+function ripple(agent, color) {
+  const n = nodes[agent]; if (!n) return;
+  const c = el("circle", { cx: n.x, cy: n.y, r: 30, fill: "none", stroke: color, "stroke-width": 2 }, document.getElementById("particles"));
+  const start = performance.now();
+  (function step(t) {
+    const p = Math.min((t - start) / 900, 1);
+    c.setAttribute("r", 30 + p * 34); c.setAttribute("opacity", 1 - p);
+    p < 1 ? requestAnimationFrame(step) : c.remove();
+  })(start);
+}
+
+function sendParticle(from, to, color) {
+  const A = nodes[from], B = nodes[to]; if (!A || !B) return;
+  flashLink(from, to);
+  const layer = document.getElementById("particles");
+  const dots = [0, 1, 2].map(i => el("circle", { r: 6 - i * 1.6, fill: color, opacity: 1 - i * 0.3, filter: "url(#glow)" }, layer));
+  const start = performance.now(), dur = 1100;
+  (function step(t) {
+    const p = (t - start) / dur;
+    dots.forEach((d, i) => {
+      const q = Math.max(0, Math.min(1, p - i * 0.06));
+      const e = q < 0.5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2;
+      d.setAttribute("cx", A.x + (B.x - A.x) * e); d.setAttribute("cy", A.y + (B.y - A.y) * e);
+    });
+    if (p < 1.15) requestAnimationFrame(step); else { dots.forEach(d => d.remove()); ripple(to, color); }
+  })(start);
+}
+
+function titleOf(id) { return nodes[id] ? nodes[id].title : id; }
+function escapeHtml(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function renderFeed() {
+  const feed = document.getElementById("feed");
+  const list = feedEvents.filter(e => !filterAgent || e.from === filterAgent || e.to === filterAgent).slice(-80).reverse();
+  if (!list.length) { feed.innerHTML = '<div class="empty">No messages yet. Launch a mission or run the demo.</div>'; return; }
+  feed.innerHTML = "";
+  list.forEach(e => {
+    const div = document.createElement("div");
+    div.className = "ev";
+    const time = new Date(e.ts * 1000).toLocaleTimeString();
+    const route = e.from === e.to ? titleOf(e.from) : `${titleOf(e.from)} → ${titleOf(e.to)}`;
+    div.innerHTML = `<div class="ev-head"><span class="kind" style="--c:${KIND_COLOR[e.kind] || "var(--muted)"}">${e.kind}</span>
+      <span class="route">${escapeHtml(route)}</span><span style="margin-left:auto">${time}</span></div>
+      <div class="ev-text">${escapeHtml(e.text)}</div>`;
+    div.addEventListener("click", () => div.classList.toggle("open"));
+    feed.appendChild(div);
+  });
+}
+
+function setFilter(agent) {
+  filterAgent = agent;
+  document.getElementById("filter").textContent = agent ? `${titleOf(agent).toUpperCase()} ✕` : "";
+  renderFeed();
+}
+document.getElementById("filter").addEventListener("click", () => setFilter(null));
+
+function handle(e, animate) {
+  if (e.kind === "status") { setStatus(e.from, e.text); return; }
+  total++;
+  feedEvents.push(e);
+  if (feedEvents.length > 400) feedEvents.splice(0, feedEvents.length - 400);
+  if (!animate) return;
+  const color = KIND_HEX[e.kind] || "#ffffff";
+  if (e.from === e.to) ripple(e.from, color); else sendParticle(e.from, e.to, color);
+}
+
+async function poll(first = false) {
+  try {
+    const data = await (await fetch("/api/events?since=" + lastId)).json();
+    const news = data.events;
+    if (first) news.forEach(e => handle(e, false)); else queue.push(...news);
+    if (news.length) lastId = news[news.length - 1].id;
+    if (first) {
+      Object.entries(data.status || {}).forEach(([a, s]) => setStatus(a, s));
+      renderFeed();
+    }
+    document.getElementById("count").textContent = total;
+    document.getElementById("state").textContent = data.busy ? "MISSION RUNNING" : "IDLE";
+    document.getElementById("state-dot").className = "dot" + (data.busy ? " busy" : "");
+    document.getElementById("launch").disabled = data.busy;
+  } catch (err) {
+    document.getElementById("state").textContent = "OFFLINE";
+  }
+  setTimeout(poll, 1000);
+}
+
+async function loadBugs() {
+  try {
+    const b = await (await fetch("/api/bugs")).json();
+    document.getElementById("bug-count").textContent = b.total;
+    document.getElementById("bug-chip").classList.toggle("alert", b.total > 0);
+    const box = document.getElementById("bugs");
+    box.innerHTML = b.latest.length ? b.latest.slice().reverse().map(x =>
+      `<div class="bug"><span class="sev">${x.severity}</span><b>${escapeHtml(titleOf(x.agent))}</b> · ${escapeHtml(x.kind)}
+       <div style="color:var(--muted);margin-top:3px">${escapeHtml(x.detail)}</div></div>`).join("")
+      : '<div class="empty">No bugs logged.</div>';
+  } catch (err) {}
+  setTimeout(loadBugs, 4000);
+}
+
+async function post(path, body) {
+  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+  return res.json();
+}
+document.getElementById("launch").addEventListener("click", async () => {
+  const text = document.getElementById("mission").value.trim();
+  if (!text) return;
+  const r = await post("/api/mission", { text });
+  document.getElementById("msg").textContent = r.ok ? "Mission sent to the General Manager. Watch the network." : r.error;
+  if (r.ok) document.getElementById("mission").value = "";
+});
+document.getElementById("demo").addEventListener("click", async () => {
+  await post("/api/demo");
+  document.getElementById("msg").textContent = "Replaying a sample mission (demo data, no API calls).";
+});
+
+setInterval(() => document.getElementById("clock").textContent = new Date().toLocaleTimeString(), 1000);
+loadTopology().then(() => { poll(true); loadBugs(); });
+</script>
+</body>
+</html>
