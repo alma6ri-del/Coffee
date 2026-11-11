@@ -1,0 +1,33 @@
+{
+  "name": "My Coffee Shop",
+  "tagline": "Fresh roasted, made with care.",
+  "address": "123 Main Street",
+  "phone": "(555) 123-4567",
+  "hours": {
+    "monday": "7:00-18:00",
+    "tuesday": "7:00-18:00",
+    "wednesday": "7:00-18:00",
+    "thursday": "7:00-18:00",
+    "friday": "7:00-20:00",
+    "saturday": "8:00-20:00",
+    "sunday": "8:00-16:00"
+  },
+  "menu": [
+    {"id": "espresso", "name": "Espresso", "category": "coffee", "price": 3.00, "description": "Double shot of our house blend.", "tags": ["strong", "hot", "dairy-free"]},
+    {"id": "americano", "name": "Americano", "category": "coffee", "price": 3.50, "description": "Espresso with hot water.", "tags": ["hot", "dairy-free"]},
+    {"id": "latte", "name": "Latte", "category": "coffee", "price": 4.75, "description": "Espresso with steamed milk.", "tags": ["hot", "milky"]},
+    {"id": "cappuccino", "name": "Cappuccino", "category": "coffee", "price": 4.50, "description": "Espresso, steamed milk and thick foam.", "tags": ["hot", "milky"]},
+    {"id": "cold-brew", "name": "Cold Brew", "category": "coffee", "price": 4.25, "description": "Steeped 18 hours, smooth and low acid.", "tags": ["cold", "dairy-free"]},
+    {"id": "iced-mocha", "name": "Iced Mocha", "category": "coffee", "price": 5.25, "description": "Espresso, chocolate and milk over ice.", "tags": ["cold", "sweet", "milky"]},
+    {"id": "chai-latte", "name": "Chai Latte", "category": "tea", "price": 4.50, "description": "Spiced black tea with steamed milk.", "tags": ["hot", "sweet", "milky", "caffeine-light"]},
+    {"id": "croissant", "name": "Butter Croissant", "category": "food", "price": 3.25, "description": "Baked fresh every morning.", "tags": ["vegetarian"]},
+    {"id": "banana-bread", "name": "Banana Bread", "category": "food", "price": 3.50, "description": "House-made, contains walnuts.", "tags": ["vegetarian", "contains-nuts"]}
+  ],
+  "milk_options": {"whole": 0.00, "oat": 0.75, "almond": 0.75, "soy": 0.50},
+  "sizes": {"small": 0.00, "medium": 0.50, "large": 1.00},
+  "policies": [
+    "Free Wi-Fi for customers.",
+    "Loyalty card: 10th drink free.",
+    "Pre-orders are ready for pickup in about 10 minutes."
+  ]
+}
